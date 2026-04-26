@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔐 لوحة التحكم - المطعم</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">🍽️</div>
+      <div class="login-title">لوحة التحكم</div>
+      <div class="login-sub">أدخل بيانات الدخول للمتابعة</div>
+      <div id="loginError" class="login-error"></div>
+      <div class="form-group">
+        <label class="form-label">اسم المستخدم</label>
+        <input class="form-input" type="text" id="loginUser" value="admin" placeholder="admin" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة السر</label>
+        <input class="form-input" type="password" id="loginPass" placeholder="••••••••" />
+      </div>
+      <button class="btn-primary" onclick="login()">🔐 دخول</button>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted)">كلمة السر الافتراضية: admin2024</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="admin-layout" style="display:none;">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🍽️</div>
+        <div class="sidebar-logo-text">مطعمنا</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">الرئيسية</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <span class="nav-item-icon">📊</span> لوحة التحكم
+      </div>
+      <div class="nav-section-title">الإدارة</div>
+      <div class="nav-item" data-page="products" onclick="navigate('products')">
+        <span class="nav-item-icon">🍽️</span> المنتجات
+      </div>
+      <div class="nav-item" data-page="orders" onclick="navigate('orders')">
+        <span class="nav-item-icon">📋</span> الطلبات
+      </div>
+      <div class="nav-item" data-page="inventory" onclick="navigate('inventory')">
+        <span class="nav-item-icon">📦</span> المخزون
+      </div>
+      <div class="nav-section-title">الأدوات</div>
+      <div class="nav-item" onclick="window.open('../index.html','_blank')">
+        <span class="nav-item-icon">👁️</span> معاينة المنيو
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+        <div class="topbar-title" id="topbarTitle">📊 لوحة التحكم</div>
+      </div>
+      <div class="topbar-actions">
+        <div id="adminAlert" class="alert" style="margin:0;display:none;padding:8px 14px;font-size:13px"></div>
+        <button class="btn-sm" onclick="navigate('products');setTimeout(openAddProductModal,100)">+ منتج جديد</button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page-section" data-page="dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🍽️</div>
+            <div class="stat-value" id="statProducts">0</div>
+            <div class="stat-label">إجمالي المنتجات</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value" id="statOrders">0</div>
+            <div class="stat-label">الطلبات الكلية</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="statRevenue">0 ر.س</div>
+            <div class="stat-label">إجمالي الإيرادات</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-value" id="statOutOfStock">0</div>
+            <div class="stat-label">نفذ مخزونه</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <span class="table-title">📋 آخر الطلبات</span>
+            <button class="btn-sm" onclick="navigate('orders')">عرض الكل</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>رقم الطلب</th><th>الطاولة</th><th>الوجبات</th><th>الإجمالي</th><th>الحالة</th><th>الوقت</th>
+              </tr></thead>
+              <tbody id="recentOrdersBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS PAGE -->
+      <div class="page-section" data-page="products" style="display:none">
+        <div class="table-wrap">
+          <div class="table-header">
+            <span class="table-title">🍽️ قائمة المنتجات</span>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input class="table-search" type="text" placeholder="بحث..." oninput="filterProductsTable(this.value)" />
+              <button class="btn-sm" onclick="openAddProductModal()">+ إضافة منتج</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>صورة</th><th>الاسم</th><th>الفئة</th><th>السعر</th><th>المخزون</th><th>متاح</th><th>مميز</th><th>إجراءات</th>
+              </tr></thead>
+              <tbody id="productsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS PAGE -->
+      <div class="page-section" data-page="orders" style="display:none">
+        <div class="table-wrap">
+          <div class="table-header">
+            <span class="table-title">📋 جميع الطلبات</span>
+            <button class="btn-sm" onclick="renderOrdersPage()">🔄 تحديث</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>رقم الطلب</th><th>الطاولة</th><th>الوجبات</th><th>الإجمالي</th><th>ملاحظات</th><th>الحالة</th><th>التاريخ</th>
+              </tr></thead>
+              <tbody id="ordersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVENTORY PAGE -->
+      <div class="page-section" data-page="inventory" style="display:none">
+        <div class="table-wrap">
+          <div class="table-header">
+            <span class="table-title">📦 إدارة المخزون</span>
+            <button class="btn-sm" onclick="renderInventoryPage()">🔄 تحديث</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>المنتج</th><th>الكمية الحالية</th><th>الحالة</th><th>تحديث الكمية</th>
+              </tr></thead>
+              <tbody id="inventoryTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </main>
+</div><!-- /admin-layout -->
+
+<!-- PRODUCT MODAL -->
+<div class="admin-modal-overlay" id="productModal">
+  <div class="admin-modal">
+    <div class="admin-modal-header">
+      <div class="admin-modal-title" id="productModalTitle">إضافة منتج</div>
+      <button class="admin-modal-close" onclick="closeAdminModal('productModal')">✕</button>
+    </div>
+    <div class="admin-modal-body">
+      <form id="productForm" onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">اسم المنتج *</label>
+            <input class="form-input" type="text" id="pName" placeholder="مثال: بيتزا مارغريتا" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">الفئة *</label>
+            <select class="form-select" id="pCategory">
+              <option value="1">المقبلات</option>
+              <option value="2">البيتزا</option>
+              <option value="3">البرغر</option>
+              <option value="4">المشويات</option>
+              <option value="5">المشروبات</option>
+              <option value="6">الحلويات</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">الوصف</label>
+          <textarea class="form-textarea" id="pDesc" placeholder="وصف المنتج..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">السعر (ر.س) *</label>
+            <input class="form-input" type="number" id="pPrice" placeholder="0.00" step="0.01" min="0" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">الكمية في المخزون</label>
+            <input class="form-input" type="number" id="pStock" placeholder="100" min="0" value="100" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">السعرات الحرارية</label>
+            <input class="form-input" type="number" id="pCalories" placeholder="0" min="0" value="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">وقت التحضير (دقيقة)</label>
+            <input class="form-input" type="number" id="pPrepTime" placeholder="15" min="1" value="15" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">رابط الصورة</label>
+          <input class="form-input" type="url" id="pImage" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">رابط الفيديو (اختياري)</label>
+          <input class="form-input" type="url" id="pVideo" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <div class="toggle-wrap">
+            <label class="toggle-switch">
+              <input type="checkbox" id="pFeatured" />
+              <span class="toggle-slider"></span>
+            </label>
+            <span style="font-size:14px;font-weight:600">⭐ منتج مميز</span>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="btn-primary" style="width:auto;padding:11px 28px" onclick="saveProduct()">💾 حفظ</button>
+      <button class="btn-cancel" onclick="closeAdminModal('productModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- STOCK UPDATE MODAL -->
+<div class="admin-modal-overlay" id="stockModal">
+  <div class="admin-modal" style="max-width:360px">
+    <div class="admin-modal-header">
+      <div class="admin-modal-title">📦 تحديث المخزون</div>
+      <button class="admin-modal-close" onclick="closeAdminModal('stockModal')">✕</button>
+    </div>
+    <div class="admin-modal-body">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px" id="stockProductName"></div>
+        <div style="color:var(--text-muted);font-size:13px">الكمية الحالية: <strong id="stockCurrentQty" style="color:var(--secondary)"></strong></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الكمية الجديدة</label>
+        <input class="form-input" type="number" id="stockQtyInput" min="0" style="font-size:20px;text-align:center;font-weight:700" />
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="btn-primary" style="width:auto;padding:11px 28px" onclick="saveStock()">✅ حفظ</button>
+      <button class="btn-cancel" onclick="closeAdminModal('stockModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+<script>
+function filterProductsTable(q) {
+  const rows = document.querySelectorAll('#productsTableBody tr');
+  rows.forEach(r => {
+    r.style.display = r.textContent.includes(q) ? '' : 'none';
+  });
+}
+// Close modals on overlay click
+document.querySelectorAll('.admin-modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

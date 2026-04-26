@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0D0517" />
+  <title>🍽️ منيو المطعم</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+
+<!-- TABLE MODAL -->
+<div class="table-modal" id="tableModal" style="display:none;">
+  <div class="table-modal-card">
+    <div class="table-modal-icon">🍽️</div>
+    <div class="table-modal-title">أهلاً بك!</div>
+    <div class="table-modal-sub">يرجى إدخال رقم طاولتك لبدء الطلب</div>
+    <input class="table-input" type="number" id="tableNumberInput" placeholder="رقم الطاولة" min="1" max="99" />
+    <button class="table-confirm-btn" onclick="confirmTable()">تأكيد</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">🍽️</div>
+      <div class="logo-text">مطعمنا</div>
+    </div>
+    <button class="table-badge" onclick="showTableModal()">
+      <span>🪑</span>
+      <span id="tableDisplay">اختر طاولتك</span>
+    </button>
+    <button class="cart-btn" onclick="openCart()">
+      🛒
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- SLIDER -->
+<section class="slider-section">
+  <div class="slider-track" id="sliderTrack"></div>
+  <button class="slider-btn prev">›</button>
+  <button class="slider-btn next">‹</button>
+  <div class="slider-dots" id="sliderDots"></div>
+</section>
+
+<!-- SEARCH -->
+<section class="search-section">
+  <div class="search-wrap">
+    <input class="search-input" type="text" placeholder="ابحث عن وجبتك المفضلة..." oninput="handleSearch(event)" />
+    <span class="search-icon">🔍</span>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="categories-section">
+  <div class="categories-scroll" id="categoriesContainer"></div>
+</section>
+
+<!-- FEATURED -->
+<section id="featuredSection">
+  <div class="section-header">
+    <span class="section-title">⭐ الأكثر طلباً</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="menu-section" style="padding-top:0;padding-bottom:0">
+    <div class="menu-grid" id="featuredGrid"></div>
+  </div>
+</section>
+
+<!-- MENU GRID -->
+<div class="section-header">
+  <span class="section-title">🍽️ قائمة الطعام</span>
+  <div class="section-line"></div>
+</div>
+<section class="menu-section">
+  <div class="menu-grid" id="menuGrid"></div>
+</section>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal" onclick="handleModalOverlayClick(event)">
+  <div class="product-modal" style="position:relative">
+    <button class="modal-close" onclick="closeProductModal()">✕</button>
+    <div class="modal-media" id="modalMedia"></div>
+    <div class="modal-body">
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-meta">
+        <span class="meta-chip" id="modalCalories"></span>
+        <span class="meta-chip" id="modalPrepTime"></span>
+      </div>
+      <div id="modalAddons"></div>
+      <div class="quantity-row">
+        <span class="qty-label">الكمية</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <span class="qty-num" id="modalQty">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <button class="add-to-cart-btn" onclick="addToCartFromModal()">
+        <span>🛒</span>
+        <span>إضافة للسلة</span>
+        <span id="modalTotalPrice">0.00 ر.س</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cartOverlay" onclick="handleCartOverlayClick(event)">
+  <div class="cart-panel">
+    <div class="cart-header">
+      <h3>🛒 سلة الطلبات</h3>
+      <button class="cart-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItemsList"></div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>الإجمالي</span>
+        <span class="cart-total-price" id="cartTotal">0.00 ر.س</span>
+      </div>
+      <textarea class="notes-input" id="orderNotes" placeholder="ملاحظات إضافية للطلب..." rows="2"></textarea>
+      <button class="checkout-btn" onclick="submitOrder()">✅ تأكيد الطلب</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER SUCCESS -->
+<div class="order-success-overlay" id="orderSuccessOverlay">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">تم إرسال طلبك!</div>
+  <div class="success-sub">جاري تجهيز طلبك الآن...</div>
+  <div class="success-order-num">
+    <span>رقم الطلب</span>
+    <strong id="successOrderNum">#0000</strong>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+<script>
+function handleModalOverlayClick(e) {
+  if (e.target === document.getElementById('productModal')) closeProductModal();
+}
+function handleCartOverlayClick(e) {
+  if (e.target === document.getElementById('cartOverlay')) closeCart();
+}
+</script>
+</body>
+</html>
